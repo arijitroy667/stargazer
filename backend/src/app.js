@@ -1,6 +1,10 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import session from "express-session";
+import MongoStore from "connect-mongo";
+import passport from "passport";
+import "./passport.js";
 import { ApiError } from "./utils/ApiError.js";
 const app = express();
 
@@ -19,6 +23,22 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(express.static("public"));
 app.use(cookieParser());
+
+app.use(
+  session({
+    secret: process.env.ACCESS_TOKEN_SECRET || "your-secret-key",
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: `${process.env.MONGODB_URI}/stargazer`,
+    }),
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+    },
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
 
 //routes import
 import userRouter from "./routes/user.routes.js";

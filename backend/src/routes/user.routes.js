@@ -1,14 +1,11 @@
 import { Router } from "express";
+import passport from "passport";
 import {
-  changeCurrentPassword,
   getCurrentUser,
   getUserChannelProfile,
   getUserChannelProfileById,
   getWatchHistory,
-  loginUser,
   logoutUser,
-  refreshAccessToken,
-  registerUser,
   updateAccountDetails,
   updateUserAvatar,
   updateUserCoverImage,
@@ -19,28 +16,15 @@ import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-router.route("/register").post(
-  upload.fields([
-    {
-      name: "avatar",
-      maxCount: 1,
-    },
-    {
-      name: "coverImage",
-      maxCount: 1,
-    },
-  ]),
-  registerUser
-);
+router.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 
-router.route("/login").post(loginUser);
+router.get("/auth/google/callback", passport.authenticate("google", {
+  successRedirect: "http://localhost:8080/",
+  failureRedirect: "http://localhost:8080/",
+}));
 
 //secured routes
-router.route("/logout").post(verifyJWT, logoutUser);
-
-router.route("/refresh-token").post(refreshAccessToken);
-
-router.route("/change-password").post(verifyJWT, changeCurrentPassword);
+router.route("/logout").post(verifyJWT, logoutUser);  
 
 router.route("/current-user").get(verifyJWT, getCurrentUser);
 
